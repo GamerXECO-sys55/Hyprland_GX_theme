@@ -32,29 +32,18 @@ if pkg_installed grub && [ -f /boot/grub/grub.cfg ]; then
             fi
         fi
 
-        print_log -g "[bootloader] " "Select grub theme:" -y "\n[1]" -y " Retroboot (dark)" -y "\n[2]" -y " Pochita (light)"
-        read -r -p " :: Press enter to skip grub theme <or> Enter option number : " grubopt
-        case ${grubopt} in
-        1) grubtheme="Retroboot" ;;
-        2) grubtheme="Pochita" ;;
-        *) grubtheme="None" ;;
-        esac
-
-        if [ "${grubtheme}" == "None" ]; then
-            print_log -g "[bootloader] " -b "skip :: " "grub theme selection skipped..."
-            echo ""
-        else
-            print_log -g "[bootloader] " -b "set :: " "grub theme // ${grubtheme}"
-            echo ""
-            # shellcheck disable=SC2154
-            [ "${flg_DryRun}" -eq 1 ] || sudo tar -xzf "${cloneDir}/Source/arcs/Grub_${grubtheme}.tar.gz" -C /usr/share/grub/themes/
-            [ "${flg_DryRun}" -eq 1 ] || sudo sed -i "/^GRUB_DEFAULT=/c\GRUB_DEFAULT=saved
-            /^GRUB_GFXMODE=/c\GRUB_GFXMODE=1280x1024x32,auto
-            /^GRUB_THEME=/c\GRUB_THEME=\"/usr/share/grub/themes/${grubtheme}/theme.txt\"
-            /^#GRUB_THEME=/c\GRUB_THEME=\"/usr/share/grub/themes/${grubtheme}/theme.txt\"
-            /^#GRUB_SAVEDEFAULT=true/c\GRUB_SAVEDEFAULT=true" /etc/default/grub
-            [ "${flg_DryRun}" -eq 1 ] || sudo grub-mkconfig -o /boot/grub/grub.cfg
-        fi
+        # Set default GRUB theme to Retroboot (first option)
+        grubtheme="Retroboot"
+        print_log -g "[bootloader] " -b "set :: " "grub theme // ${grubtheme} (default)"
+        echo ""
+        # shellcheck disable=SC2154
+        [ "${flg_DryRun}" -eq 1 ] || sudo tar -xzf "${cloneDir}/Source/arcs/Grub_${grubtheme}.tar.gz" -C /usr/share/grub/themes/
+        [ "${flg_DryRun}" -eq 1 ] || sudo sed -i "/^GRUB_DEFAULT=/c\GRUB_DEFAULT=saved
+        /^GRUB_GFXMODE=/c\GRUB_GFXMODE=1280x1024x32,auto
+        /^GRUB_THEME=/c\GRUB_THEME=\"/usr/share/grub/themes/${grubtheme}/theme.txt\"
+        /^#GRUB_THEME=/c\GRUB_THEME=\"/usr/share/grub/themes/${grubtheme}/theme.txt\"
+        /^#GRUB_SAVEDEFAULT=true/c\GRUB_SAVEDEFAULT=true" /etc/default/grub
+        [ "${flg_DryRun}" -eq 1 ] || sudo grub-mkconfig -o /boot/grub/grub.cfg
 
     else
         print_log -y "[bootloader] " -b "exist :: " "grub is already configured..."
@@ -101,31 +90,10 @@ fi
 if grep -q '\[chaotic-aur\]' /etc/pacman.conf; then
     print_log -sec "CHAOTIC-AUR" -stat "skipped" "Chaotic AUR entry found in pacman.conf..."
 else
-    prompt_timer 120 "Would you like to install Chaotic AUR? [y/n] | q to quit "
-    is_chaotic_aur=false
-
-    case "${PROMPT_INPUT}" in
-    y | Y)
-        is_chaotic_aur=true
-        ;;
-    n | N)
-        is_chaotic_aur=false
-        ;;
-    q | Q)
-        print_log -sec "Chaotic AUR" -crit "Quit" "Exiting..."
-        exit 1
-        ;;
-    *)
-        is_chaotic_aur=true
-        ;;
-    esac
-    if [ "${is_chaotic_aur}" == true ]; then
-        print_log -sec "Chaotic-aur" -stat "Installation" "Installing Chaotic AUR..."
-        if [[ "${flg_DryRun}" -ne 1 ]]; then
-            sudo pacman-key --init
-            sudo "${scrDir}/chaotic_aur.sh" --install
-        fi
-    else
-        print_log -sec "Chaotic-aur" -stat "Skipped" "Chaotic AUR installation skipped..."
+    # Set default to install Chaotic AUR
+    print_log -sec "Chaotic-aur" -stat "Installation" "Installing Chaotic AUR (default)..."
+    if [[ "${flg_DryRun}" -ne 1 ]]; then
+        sudo pacman-key --init
+        sudo "${scrDir}/chaotic_aur.sh" --install
     fi
 fi

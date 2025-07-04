@@ -84,12 +84,18 @@ install_packages() {
                 print_log -b "[pkg] " "${pkg}"
             done
         else
-            $install_cmd ${use_default:+"$use_default"} -S "${pkg_array[@]}"
+            if [ "$pkg_type" = "aur" ]; then
+                # Install AUR packages in user mode (not as root)
+                $install_cmd ${use_default:+"$use_default"} -S "${pkg_array[@]}"
+            else
+                # Install system packages as root
+                sudo $install_cmd ${use_default:+"$use_default"} -S "${pkg_array[@]}"
+            fi
         fi
     fi
 }
 
 echo ""
-install_packages archPkg "arch" "sudo pacman"
+install_packages archPkg "arch" "pacman"
 echo ""
 install_packages aurhPkg "aur" "${aurhlpr}"
