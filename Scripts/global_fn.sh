@@ -104,6 +104,16 @@ prompt_timer() {
 print_log() {
     local executable="${0##*/}"
     local logFile="${cacheDir}/logs/${HYDE_LOG}/${executable}"
+    
+    # Also log to main installer log directory if available
+    local mainLogDir="/tmp/gxinstall_logs/hyde"
+    local mainLogFile="${mainLogDir}/hyde_${executable}_$(date +%Y%m%d_%H%M%S).log"
+    
+    # Create main log directory if it doesn't exist
+    if [ -n "${HYDE_LOG}" ] && [ -d "/tmp" ]; then
+        mkdir -p "${mainLogDir}"
+    fi
+    
     mkdir -p "$(dirname "${logFile}")"
     local section=${log_section:-}
     {
@@ -174,7 +184,12 @@ print_log() {
         done
         echo ""
     } | if [ -n "${HYDE_LOG}" ]; then
-        tee >(sed 's/\x1b\[[0-9;]*m//g' >>"${logFile}")
+        # Log to both HyDE's own log directory and main installer log directory
+        if [ -d "/tmp" ]; then
+            tee >(sed 's/\x1b\[[0-9;]*m//g' >>"${logFile}") >(sed 's/\x1b\[[0-9;]*m//g' >>"${mainLogFile}")
+        else
+            tee >(sed 's/\x1b\[[0-9;]*m//g' >>"${logFile}")
+        fi
     else
         cat
     fi

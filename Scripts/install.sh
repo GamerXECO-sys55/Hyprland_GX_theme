@@ -90,6 +90,10 @@ done
 HYDE_LOG="$(date +'%y%m%d_%Hh%Mm%Ss')"
 export flg_DryRun flg_Nvidia flg_Shell flg_Install flg_ThemeInstall HYDE_LOG
 
+# Log installation start
+print_log -sec "HyDE" -stat "Started" "Installation process initiated"
+print_log -sec "HyDE" -stat "Log" "Log directory: ${cacheDir}/logs/${HYDE_LOG}"
+
 if [ "${flg_DryRun}" -eq 1 ]; then
     print_log -n "[test-run] " -b "enabled :: " "Testing without executing"
 elif [ $OPTIND -eq 1 ]; then
